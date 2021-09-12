@@ -1,52 +1,39 @@
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
+import psycopg2
+import pandas as pd
+from web_scraping import scrapeImagesFromAllPages
 
-source = 'https://books.toscrape.com/'
+url = 'https://books.toscrape.com/'
 
-def makeSoup(url):
-    r = requests.get(url)
-    return BeautifulSoup(r.text, 'html.parser')
+class Config:
+    HOST = 'localhost'
+    USER = 'application'
+    PASSWORD = 'secretpassword'
+    DATABASE = 'application'
 
-def findNoOfPages(soup):
-    tag = soup.find_all('li', {'class': 'current'})
-    no_of_pages = int(tag[0].text.strip().split()[-1])
-    return no_of_pages
+with psycopg2.connect(
+    host = Config.HOST,
+    database = Config.DATABASE,
+    user = Config.USER,
+    password = Config.PASSWORD
+) as connection:
 
-def scrapeImagesOnPage(page_url):
-    list_of_rows = []
-    soup = makeSoup(page_url)
-    images = soup.find_all('img')
-    for image in images:
-        title = str(image['alt'])
-        img_url = str(image['src']).replace('../', source)
-        downloaded_at = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-        row = (title, img_url, downloaded_at)
-        list_of_rows.append(row)
-    return list_of_rows
+    print(connection)
+    images = scrapeImagesFromAllPages(url)
 
-def scrapeImagesFromAllPages(url):
-    list_of_all_rows = []
-    r = requests.get(url)
-    main_soup = BeautifulSoup(r.text, 'html.parser')
-    pages = findNoOfPages(main_soup)
-    for page in range(1, 4):
-        page_url = url + f'/catalogue/page-{page}.html'
-        print(page_url)
-        print('============================')
-        rows = scrapeImagesOnPage(page_url)
-        list_of_all_rows += rows
-    return list_of_all_rows
-            
-x = scrapeImagesFromAllPages(source)
+    with connection.cursor() as cursor:
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS scraped_images (title VARCHAR, img_url VARCHAR, downloaded_at TIMESTAMP)
+        ''')
 
-print(x[0])
+        for image in images: 
+            cursor.execute('''
+                INSERT INTO scraped_images (title, img_url, downloaded_at) 
+                VALUES (%s, %s, %s)
+            ''', image)
 
-
-
-
-
-    
+        df = pd.read_sql('select * from scraped_images limit 10', connection)
+        print(df)
+        
 
 
 
