@@ -1,6 +1,6 @@
 import psycopg2
 import pandas as pd
-from web_scraping import scrapeImagesFromAllPages
+from utils import scrapeImagesFromAllPages
 
 url = 'https://books.toscrape.com'
 
