@@ -2,7 +2,7 @@ import psycopg2
 import pandas as pd
 from web_scraping import scrapeImagesFromAllPages
 
-url = 'https://books.toscrape.com/'
+url = 'https://books.toscrape.com'
 
 class Config:
     HOST = 'localhost'
@@ -24,6 +24,7 @@ with psycopg2.connect(
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS scraped_images (title VARCHAR, img_url VARCHAR, downloaded_at TIMESTAMP)
         ''')
+        cursor.execute('TRUNCATE scraped_images')
 
         for image in images: 
             cursor.execute('''
@@ -31,7 +32,7 @@ with psycopg2.connect(
                 VALUES (%s, %s, %s)
             ''', image)
 
-        df = pd.read_sql('select * from scraped_images limit 10', connection)
+        df = pd.read_sql('select * from scraped_images', connection)
         print(df)
         
 
