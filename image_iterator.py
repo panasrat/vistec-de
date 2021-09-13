@@ -1,7 +1,7 @@
 import psycopg2
 from config import Config
 
-def image_iterator(no_of_images: int):
+def image_iterator():
     
     with psycopg2.connect(
         host = Config.HOST,
@@ -17,13 +17,7 @@ def image_iterator(no_of_images: int):
             cursor.execute('''
                 SELECT * FROM scraped_images
                 ORDER BY RANDOM()
-                LIMIT %s
-            ''', [no_of_images])
+            ''')
             list_of_images = cursor.fetchall()
 
     return iter(list_of_images)
-
-x = image_iterator(3)
-print(next(x))
-print(next(x))
-print(next(x))

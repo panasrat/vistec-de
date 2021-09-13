@@ -1,9 +1,13 @@
 import psycopg2
+import random
 import pandas as pd
 from config import Config
 from utils import scrapeImagesFromAllPages
 
-def insert_to_postgres(url):
+def insert_to_postgres(url, no_of_images):
+
+    if no_of_images < 1 or no_of_images > 1000:
+        raise ValueError('Number should be between 1 and 1000')
 
     with psycopg2.connect(
         host = Config.HOST,
@@ -15,6 +19,8 @@ def insert_to_postgres(url):
         print('Connection established:', connection)
         print('============================')
         images = scrapeImagesFromAllPages(url)
+        random_images = random.sample(images, no_of_images)
+        print(f'Randomly insert {no_of_images} images to Postgres:')
 
         with connection.cursor() as cursor:
             cursor.execute('''
@@ -22,7 +28,7 @@ def insert_to_postgres(url):
             ''')
             cursor.execute('TRUNCATE scraped_images')
 
-            for image in images: 
+            for image in random_images: 
                 cursor.execute('''
                     INSERT INTO scraped_images (title, img_url, downloaded_at) 
                     VALUES (%s, %s, %s)

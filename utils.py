@@ -27,6 +27,8 @@ def scrapeImagesFromAllPages(url):
     list_of_all_rows = []
     main_soup = makeSoup(url)
     pages = findNoOfPages(main_soup)
+    print(f'Scraping images from {pages} pages ({20*pages} images):')
+    print('============================')
     for page in range(1, pages+1):
         page_url = url + f'/catalogue/page-{page}.html'
         print(f'scrape page {page}:', page_url)
